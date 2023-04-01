@@ -1,0 +1,83 @@
+If we keep all the partners for the routing and enabling the exclude route set it for 70 %,the some top  perfomers will  belongs to one telco and next top performers will belongs to some other telco.
+
+If we observe any downtime at one of the telco. 
+if one of the telco connets will be excluded when the delivery % goes less than 70%.
+after some time issue resolved on those connects, router will not route the traffic to those connects.
+
+conclusion : the connects excluded permenently until we disable the exclude route option.
+
+
+
+
+We have tested with 10 TPS due to with high TPS, getting the error of 500 http status code
+
+Procedure
+
+we have scaled down one of the connect
+
+Result
+
+after 10 secs the messages are submitting to other connects
+
+failed while checking with higher TPS
+
+Draw back
+
+Till the 10secs , the messages will be in nsq until the connect is up
+
+NOTE: Everything is working as expected in lower TPS(10TPS), Need to be checked with higher TPS
+
+
+Old router testing by scale down smart router
+
+We have tested with 10 TPS
+
+Intially traffic routed by using smart router, after sometime we have scaled down the smart router and scaled up the old router.
+
+Result
+
+No errors found
+
+NOTE: Everything is working as expected in lower TPS(10TPS), Need to be checked with higher TPS
+
+
+
+Smart router is taking 15 min window to calculate the top performer, there is no possibility to check in pre-prod so calculated the loss of failures by taking some assumptions Assumptions
+Considering the top 1 performer as 98%
+                top 2 performer as 95% Intial TPS is submitting by the client  333 TPS
+Sudden dropped TPS  16 TPS If the client is sending the 333 TPS and suddenly dropped to 16 TPS, at that time if we observe complete outage on one telco like decryption or DLT issue or SMSC issue. for the first 14 min we got traffic like 280000 messages ,from the 15th min 1000 messages are submitting.The delivery percentage will give by redis is 97.65%.
+i.e, considering the 25 min window to calculate the delivery %
+intial delivery % -- 98%
+1-15 min delivery % -- 97.65
+2-16 min--97.63
+3-17 min -- 97.19
+.
+.
+.
+.
+8-22 min --- 94.05 like wise, the second top performer to become the fisrt top performer it will take 7-8 min time,until then whatever the traffic is submitting the same to telco which is impacting the traffic will get fail.
+Impact volume -- 7k to 8k
+
+
+Assumption outage
+
+Telco's -- Airtel & VIL
+
+If the smart router goes down and at the same time VIL also goes down.
+
+We never know which connect is performing good,after enabling the fail back router again we have to wait for 10-15 min to wait which connect is performing good
+
+The total outage will be 20-25 min in a day if it happens only once.
+
+
+
+If we give delivery % for the exclude route as 90, if no connect is giving above 90% delivery.The messages will not submit to any connect.
+
+i.e.,scenario
+
+For the 8th and 9th hour on everyday kotak is submitting both smpp and http traffic,the http traffic doen't give good delivery percentage but smpp traffic gives above 96%.If we want to give promised delivered percetage,we should keep exclude route delivery percentage more than 90%.
+
+
+
+
+As per amar sir said, the connects and redis count should be monitored from wisely admin portal. if we observe any mismatch b/w the connects count and redis count , should be edited redis count manually.
